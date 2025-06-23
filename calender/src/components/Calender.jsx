@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { gsap } from "gsap"
+import { MdKeyboardArrowLeft, MdKeyboardArrowRight, MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from "react-icons/md"
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const monthNames = [
@@ -53,6 +54,8 @@ const Calendar = () => {
   const gridRef = useRef(null)
   const monthPickerRef = useRef(null)
   const yearPickerRef = useRef(null)
+  const monthBtnRef = useRef(null)
+  const yearBtnRef = useRef(null)
 
   const days = getMonthGrid(year, month)
 
@@ -180,29 +183,73 @@ const Calendar = () => {
     }
   }
 
+  // GSAP hover handlers
+  const handleMonthHover = () => {
+    if (monthBtnRef.current) {
+      gsap.to(monthBtnRef.current, { scale: 1.08, backgroundColor: "#e0edff", duration: 0.1, ease: "power2.out" })
+    }
+  }
+  const handleMonthUnhover = () => {
+    if (monthBtnRef.current) {
+      gsap.to(monthBtnRef.current, { scale: 1, backgroundColor: "#fff", duration: 0.1, ease: "power2.in" })
+    }
+  }
+  const handleYearHover = () => {
+    if (yearBtnRef.current) {
+      gsap.to(yearBtnRef.current, { scale: 1.08, backgroundColor: "#e0edff", duration: 0.1, ease: "power2.out" })
+    }
+  }
+  const handleYearUnhover = () => {
+    if (yearBtnRef.current) {
+      gsap.to(yearBtnRef.current, { scale: 1, backgroundColor: "#fff", duration: 0.1, ease: "power2.in" })
+    }
+  }
+
   return (
     <div className="p-2 sm:p-4 md:p-6 max-w-full md:max-w-3xl mx-auto">
       <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-2">
-          <button onClick={handlePrevYear} className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm">
-            «
+          <button
+            onClick={handlePrevYear}
+            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
+            aria-label="Previous Year"
+          >
+            <MdKeyboardDoubleArrowLeft size={22} />
           </button>
-          <button onClick={handlePrevMonth} className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
-            ‹
+          <button
+            onClick={handlePrevMonth}
+            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
+            aria-label="Previous Month"
+          >
+            <MdKeyboardArrowLeft size={22} />
           </button>
         </div>
         <span className="text-lg sm:text-xl font-bold relative flex flex-col items-center">
-          <button onClick={handleMonthClick} className="focus:outline-none hover:underline">
+          <button
+            ref={monthBtnRef}
+            onClick={handleMonthClick}
+            onMouseEnter={handleMonthHover}
+            onMouseLeave={handleMonthUnhover}
+            className="focus:outline-none px-2 py-1 rounded transition"
+            style={{ background: "#fff" }}
+          >
             {monthNames[month]}
           </button>{" "}
-          <button onClick={handleYearClick} className="focus:outline-none hover:underline ml-1">
+          <button
+            ref={yearBtnRef}
+            onClick={handleYearClick}
+            onMouseEnter={handleYearHover}
+            onMouseLeave={handleYearUnhover}
+            className="focus:outline-none px-2 py-1 rounded transition ml-1"
+            style={{ background: "#fff" }}
+          >
             {year}
           </button>
           {/* Month Picker Overlay */}
           {showMonthPicker && (
             <>
               <div
-                className="fixed inset-0 bg-opacity-20 z-10 transition-all"
+                className="fixed inset-0 bg-black opacity-50 z-10 transition-all"
                 onClick={closeMonthPicker}
               />
               <div
@@ -232,7 +279,7 @@ const Calendar = () => {
           {showYearPicker && (
             <>
               <div
-                className="fixed inset-0 bg-opacity-30 z-30 transition-all"
+                className="fixed inset-0 bg-black opacity-50 z-30 transition-all"
                 onClick={closeYearPicker}
               />
               <div
@@ -284,11 +331,19 @@ const Calendar = () => {
           )}
         </span>
         <div className="flex items-center gap-2">
-          <button onClick={handleNextMonth} className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
-            ›
+          <button
+            onClick={handleNextMonth}
+            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
+            aria-label="Next Month"
+          >
+            <MdKeyboardArrowRight size={22} />
           </button>
-          <button onClick={handleNextYear} className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm">
-            »
+          <button
+            onClick={handleNextYear}
+            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
+            aria-label="Next Year"
+          >
+            <MdKeyboardDoubleArrowRight size={22} />
           </button>
         </div>
       </div>
