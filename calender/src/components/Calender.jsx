@@ -3,6 +3,12 @@
 import { useState, useRef, useEffect } from "react"
 import { gsap } from "gsap"
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight, MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from "react-icons/md"
+import UpcomingEvents from "./Calender/UpcomingEvents"
+import EventsForDay from "./Calender/EventsForDay"
+import CalendarGrid from "./Calender/CalendarGrid"
+import EventPanel from "./Calender/EventPanel"
+import ReactDOM from "react-dom"
+import events from "../data/events.json";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const monthNames = [
@@ -51,11 +57,32 @@ const Calendar = () => {
   const [showMonthPicker, setShowMonthPicker] = useState(false)
   const [showYearPicker, setShowYearPicker] = useState(false)
   const [yearInput, setYearInput] = useState(year)
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
   const gridRef = useRef(null)
   const monthPickerRef = useRef(null)
   const yearPickerRef = useRef(null)
   const monthBtnRef = useRef(null)
   const yearBtnRef = useRef(null)
+  const calendarRef = useRef(null)
+
+  // Example events data
+  const eventsData = {
+    "2025-06-23": [
+      { title: "Team Meeting", time: "07:30 PM", description: "Discuss project milestones and assign new tasks.", color: "#3b82f6" },
+      { title: "Lunch with Alex", time: "1:00 PM", description: "Catch up with Alex at the downtown cafe.", color: "#f59e42" },
+      { title: "Team Meeting", time: "07:30 PM", description: "Discuss project milestones and assign new tasks.", color: "#3b82f6" },
+    ],
+    "2025-06-24": [
+      { title: "Doctor Appointment", time: "9:00 AM", description: "Annual health checkup at City Clinic.", color: "#10b981" }
+    ]
+  }
+
+  // Get all events for the selected day
+  const eventsForDay = selectedEvent
+    ? (eventsData[selectedEvent.date] || [])
+    : [];
 
   const days = getMonthGrid(year, month)
 
@@ -64,7 +91,7 @@ const Calendar = () => {
       gsap.fromTo(
         gridRef.current.children,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, stagger: 0.02, duration: 0.3, ease: "power2.out" },
+        { opacity: 1, y: 0, stagger: 0.02, duration: 0.3, ease: "power2.out" }
       )
     }
   }, [month, year])
@@ -122,23 +149,13 @@ const Calendar = () => {
   }
 
   const handlePrevMonth = () => {
-    setMonth((prev) => {
-      if (prev === 0) {
-        setYear((y) => y - 1)
-        return 11
-      }
-      return prev - 1
-    })
+    setMonth((prev) => (prev === 0 ? 11 : prev - 1))
+    if (month === 0) setYear((y) => y - 1)
   }
 
   const handleNextMonth = () => {
-    setMonth((prev) => {
-      if (prev === 11) {
-        setYear((y) => y + 1)
-        return 0
-      }
-      return prev + 1
-    })
+    setMonth((prev) => (prev === 11 ? 0 : prev + 1))
+    if (month === 11) setYear((y) => y + 1)
   }
 
   const handlePrevYear = () => setYear((y) => y - 1)
@@ -147,237 +164,239 @@ const Calendar = () => {
   const handleMonthClick = () => setShowMonthPicker(true)
 
   const handleMonthSelect = (idx) => {
+    console.log("Selecting month:", idx) // Debug log
     setMonth(idx)
     closeMonthPicker()
   }
 
-  // Year picker logic
   const minYear = 1901
   const maxYear = 2100
-  const years = []
-  const startYear = Math.max(year - 10, minYear)
-  const endYear = Math.min(year + 10, maxYear)
-  for (let i = startYear; i <= endYear; i++) years.push(i)
+  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i).filter(y => y >= Math.max(year - 10, minYear) && y <= Math.min(year + 10, maxYear))
 
   const handleYearClick = () => {
     setShowYearPicker(true)
     setYearInput(year)
   }
+
   const handleYearSelect = (y) => {
-    let selectedYear = y
-    if (selectedYear < minYear) selectedYear = minYear
-    if (selectedYear > maxYear) selectedYear = maxYear
+    console.log("Selecting year:", y) // Debug log
+    let selectedYear = Math.max(minYear, Math.min(maxYear, y))
     setYear(selectedYear)
     closeYearPicker()
   }
-  const handleYearInputChange = (e) => {
-    setYearInput(e.target.value.replace(/\D/, ""))
-  }
+
+  const handleYearInputChange = (e) => setYearInput(e.target.value.replace(/\D/, ""))
   const handleYearInputKeyDown = (e) => {
     if (e.key === "Enter" && yearInput) {
       let inputYear = Number(yearInput)
-      if (inputYear < minYear) inputYear = minYear
-      if (inputYear > maxYear) inputYear = maxYear
+      inputYear = Math.max(minYear, Math.min(maxYear, inputYear))
       setYear(inputYear)
       closeYearPicker()
     }
   }
 
-  // GSAP hover handlers
+  const handleDateClick = (day, monthOffset) => {
+    if (monthOffset !== 0) return
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+    setSelectedDate(dateStr)
+  }
+
   const handleMonthHover = () => {
-    if (monthBtnRef.current) {
-      gsap.to(monthBtnRef.current, { scale: 1.08, backgroundColor: "#e0edff", duration: 0.1, ease: "power2.out" })
-    }
+    if (monthBtnRef.current) gsap.to(monthBtnRef.current, { scale: 1.08, backgroundColor: "#e0edff", duration: 0.1, ease: "power2.out" })
   }
   const handleMonthUnhover = () => {
-    if (monthBtnRef.current) {
-      gsap.to(monthBtnRef.current, { scale: 1, backgroundColor: "#fff", duration: 0.1, ease: "power2.in" })
-    }
+    if (monthBtnRef.current) gsap.to(monthBtnRef.current, { scale: 1, backgroundColor: "#fff", duration: 0.1, ease: "power2.in" })
   }
   const handleYearHover = () => {
-    if (yearBtnRef.current) {
-      gsap.to(yearBtnRef.current, { scale: 1.08, backgroundColor: "#e0edff", duration: 0.1, ease: "power2.out" })
-    }
+    if (yearBtnRef.current) gsap.to(yearBtnRef.current, { scale: 1.08, backgroundColor: "#e0edff", duration: 0.1, ease: "power2.out" })
   }
   const handleYearUnhover = () => {
-    if (yearBtnRef.current) {
-      gsap.to(yearBtnRef.current, { scale: 1, backgroundColor: "#fff", duration: 0.1, ease: "power2.in" })
-    }
+    if (yearBtnRef.current) gsap.to(yearBtnRef.current, { scale: 1, backgroundColor: "#fff", duration: 0.1, ease: "power2.in" })
   }
 
-  return (
-    <div className="p-2 sm:p-4 md:p-6 max-w-full md:max-w-3xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrevYear}
-            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
-            aria-label="Previous Year"
-          >
-            <MdKeyboardDoubleArrowLeft size={22} />
-          </button>
-          <button
-            onClick={handlePrevMonth}
-            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
-            aria-label="Previous Month"
-          >
-            <MdKeyboardArrowLeft size={22} />
-          </button>
-        </div>
-        <span className="text-lg sm:text-xl font-bold relative flex flex-col items-center">
-          <button
-            ref={monthBtnRef}
-            onClick={handleMonthClick}
-            onMouseEnter={handleMonthHover}
-            onMouseLeave={handleMonthUnhover}
-            className="focus:outline-none px-2 py-1 rounded transition"
-            style={{ background: "#fff" }}
-          >
-            {monthNames[month]}
-          </button>{" "}
-          <button
-            ref={yearBtnRef}
-            onClick={handleYearClick}
-            onMouseEnter={handleYearHover}
-            onMouseLeave={handleYearUnhover}
-            className="focus:outline-none px-2 py-1 rounded transition ml-1"
-            style={{ background: "#fff" }}
-          >
-            {year}
-          </button>
-          {/* Month Picker Overlay */}
-          {showMonthPicker && (
-            <>
-              <div
-                className="fixed inset-0 bg-black opacity-50 z-10 transition-all"
-                onClick={closeMonthPicker}
-              />
-              <div
-                ref={monthPickerRef}
-                className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-20 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 grid grid-cols-3 gap-3 w-64 sm:w-100"
-              >
-                {monthNames.map((m, idx) => (
-                  <button
-                    key={m}
-                    onClick={() => {
-                      setMonth(idx)
-                      closeMonthPicker()
-                    }}
-                    className={`block w-full text-center px-4 py-3 rounded-lg transition-all duration-200 text-base font-medium
-                      ${idx === month
-                        ? "bg-blue-500 text-white shadow hover:bg-blue-600 hover:shadow-md"
-                        : "text-gray-900 hover:bg-blue-200 hover:shadow-sm"}`}
-                    style={{ minHeight: "2.5rem" }}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          {/* Year Picker Overlay */}
-          {showYearPicker && (
-            <>
-              <div
-                className="fixed inset-0 bg-black opacity-50 z-30 transition-all"
-                onClick={closeYearPicker}
-              />
-              <div
-                ref={yearPickerRef}
-                className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-40 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 w-48 sm:w-64"
-              >
-                <input
-                  type="text"
-                  value={yearInput}
-                  onChange={handleYearInputChange}
-                  onKeyDown={e => {
-                    if (e.key === "Enter" && yearInput) {
-                      let inputYear = Number(yearInput)
-                      if (inputYear < minYear) inputYear = minYear
-                      if (inputYear > maxYear) inputYear = maxYear
-                      setYear(inputYear)
-                      closeYearPicker()
-                    }
-                  }}
-                  className="w-full mb-2 px-2 py-1 border rounded focus:outline-none focus:ring"
-                  placeholder="Type year"
-                  maxLength={4}
-                  inputMode="numeric"
-                  min={minYear}
-                  max={maxYear}
-                />
-                <div className="max-h-48 overflow-y-auto grid grid-cols-2 gap-2">
-                  {years.map((y) => (
-                    <button
-                      key={y}
-                      onClick={() => {
-                        let selectedYear = y
-                        if (selectedYear < minYear) selectedYear = minYear
-                        if (selectedYear > maxYear) selectedYear = maxYear
-                        setYear(selectedYear)
-                        closeYearPicker()
-                      }}
-                      className={`block w-full text-center px-2 py-2 rounded-lg transition text-base font-medium
-                        ${y === year
-                          ? "bg-blue-500 text-white shadow"
-                          : "hover:bg-blue-100"}`}
-                    >
-                      {y}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleNextMonth}
-            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
-            aria-label="Next Month"
-          >
-            <MdKeyboardArrowRight size={22} />
-          </button>
-          <button
-            onClick={handleNextYear}
-            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm"
-            aria-label="Next Year"
-          >
-            <MdKeyboardDoubleArrowRight size={22} />
-          </button>
-        </div>
-      </div>
-      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
-        {daysOfWeek.map((day) => (
-          <div key={day} className="text-center font-semibold text-gray-600 text-xs sm:text-base">
-            {day}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1 sm:gap-2" ref={gridRef}>
-        {days.map(({ day, monthOffset }, idx) => {
-          // Highlight today only if it's in the current month
-          const isToday =
-            monthOffset === 0 && day === today.getDate() && month === today.getMonth() && year === today.getFullYear()
+  // Navigation handlers
+  function parseTimeToMinutes(timeStr) {
+    if (!timeStr) return 0;
+    const [time, meridian] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    if (meridian && meridian.toLowerCase() === "pm" && hours !== 12) hours += 12;
+    if (meridian && meridian.toLowerCase() === "am" && hours === 12) hours = 0;
+    return hours * 60 + (minutes || 0);
+  }
 
-          return (
-            <div
-              key={idx}
-              className={`h-10 w-10 sm:h-16 sm:w-16 flex items-center justify-center cursor-pointer transition-all duration-200
-                ${
-                  isToday
-                    ? "bg-blue-500 text-white font-bold shadow-lg rounded-full transform hover:scale-110"
-                    : monthOffset === 0
-                      ? "bg-white text-gray-800 hover:bg-blue-100 rounded-full transform hover:scale-105"
-                      : "bg-gray-100 text-gray-400 rounded-xl hover:bg-gray-200"
-                }
-              `}
-            >
-              {day}
+  const handlePrevEvent = () => {
+    if (!selectedEvent) return;
+    const dayEvents = (events[selectedEvent.date] || []).slice().sort((a, b) =>
+      parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time)
+    );
+    const idx = dayEvents.findIndex(ev =>
+      ev.title === selectedEvent.title &&
+      ev.time === selectedEvent.time &&
+      ev.color === selectedEvent.color
+    );
+    if (idx > 0) {
+      setSelectedEvent({ ...dayEvents[idx - 1], date: selectedEvent.date });
+    }
+  };
+
+  const handleNextEvent = () => {
+    if (!selectedEvent) return;
+    const dayEvents = (events[selectedEvent.date] || []).slice().sort((a, b) =>
+      parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time)
+    );
+    const idx = dayEvents.findIndex(ev =>
+      ev.title === selectedEvent.title &&
+      ev.time === selectedEvent.time &&
+      ev.color === selectedEvent.color
+    );
+    if (idx < dayEvents.length - 1) {
+      setSelectedEvent({ ...dayEvents[idx + 1], date: selectedEvent.date });
+    }
+  };
+
+  return (
+    <div className="p-2 sm:p-4 md:p-6 max-w-full mx-auto">
+      <div className={`flex flex-col lg:flex-row w-full min-h-[500px] relative overflow-visible transition-all duration-300 ${selectedEvent ? "filter pointer-events-none" : ""}`}>
+        {/* Calendar Panel */}
+        <div className="flex-1 flex flex-col z-10 overflow-x-auto">
+          <div
+            ref={calendarRef}
+            className="flex justify-center w-full"
+            style={{ minWidth: 0 }}
+          >
+            <div className="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl" style={{ minWidth: 0 }}>
+              <CalendarGrid
+                year={year}
+                month={month}
+                days={days}
+                today={today}
+                selectedDate={selectedDate}
+                events={events}
+                handlePrevYear={handlePrevYear}
+                handlePrevMonth={handlePrevMonth}
+                handleNextMonth={handleNextMonth}
+                handleNextYear={handleNextYear}
+                handleMonthClick={handleMonthClick}
+                handleYearClick={handleYearClick}
+                showMonthPicker={showMonthPicker}
+                showYearPicker={showYearPicker}
+                monthBtnRef={monthBtnRef}
+                yearBtnRef={yearBtnRef}
+                monthPickerRef={monthPickerRef}
+                yearPickerRef={yearPickerRef}
+                handleMonthHover={handleMonthHover}
+                handleMonthUnhover={handleMonthUnhover}
+                handleYearHover={handleYearHover}
+                handleYearUnhover={handleYearUnhover}
+                closeMonthPicker={closeMonthPicker}
+                closeYearPicker={closeYearPicker}
+                monthNames={monthNames}
+                years={years}
+                minYear={minYear}
+                maxYear={maxYear}
+                yearInput={yearInput}
+                setYearInput={setYearInput}
+                setYear={setYear}
+                handleMonthSelect={handleMonthSelect}
+                handleYearSelect={handleYearSelect}
+                handleDateClick={handleDateClick}
+                gridRef={gridRef}
+                setSelectedEvent={setSelectedEvent}
+              />
             </div>
-          )
-        })}
+          </div>
+        </div>
+        {/* Sidebar */}
+        <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 m-0 z-10">
+          <UpcomingEvents events={events} />
+          <EventsForDay events={events} selectedDate={selectedDate} />
+        </div>
       </div>
+      {/* Overlay for pickers */}
+      {(showMonthPicker || showYearPicker) && (
+        <div
+          className="fixed inset-0 bg-black opacity-50 z-40"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (showMonthPicker) closeMonthPicker();
+            if (showYearPicker) closeYearPicker();
+          }}
+        />
+      )}
+      {/* Month Picker Portal */}
+      {showMonthPicker &&
+        ReactDOM.createPortal(
+          <div
+            ref={monthPickerRef}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 grid grid-cols-3 gap-3 w-64 sm:w-100"
+            onClick={e => e.stopPropagation()}
+          >
+            {monthNames.map((m, idx) => (
+              <button
+                key={m}
+                onClick={() => handleMonthSelect(idx)}
+                className={`block w-full text-center px-4 py-3 rounded-lg transition-all duration-200 text-base font-medium
+                  ${idx === month
+                    ? "bg-blue-500 text-white shadow hover:bg-blue-600 hover:shadow-md"
+                    : "text-gray-900 hover:bg-blue-200 hover:shadow-sm"}`}
+                style={{ minHeight: "2.5rem" }}
+              >
+                {m}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )
+      }
+
+      {/* Year Picker Portal */}
+      {showYearPicker &&
+        ReactDOM.createPortal(
+          <div
+            ref={yearPickerRef}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 w-48 sm:w-64"
+            onClick={e => e.stopPropagation()}
+          >
+            <input
+              type="text"
+              value={yearInput}
+              onChange={e => setYearInput(e.target.value.replace(/\D/, ""))}
+              onKeyDown={handleYearInputKeyDown}
+              className="w-full mb-2 px-2 py-1 border rounded focus:outline-none focus:ring"
+              placeholder="Type year"
+              maxLength={4}
+              inputMode="numeric"
+              min={minYear}
+              max={maxYear}
+            />
+            <div className="max-h-48 overflow-y-auto grid grid-cols-2 gap-2">
+              {years.map((y) => (
+                <button
+                  key={y}
+                  onClick={() => handleYearSelect(y)}
+                  className={`block w-full text-center px-2 py-2 rounded-lg transition text-base font-medium
+                    ${y === year
+                      ? "bg-blue-500 text-white shadow"
+                      : "hover:bg-blue-100"}`}
+                >
+                  {y}
+                </button>
+              ))}
+            </div>
+          </div>,
+          document.body
+        )
+      }
+      {/* EventPanel overlay (not blurred) */}
+      {selectedEvent && (
+        <EventPanel
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          eventsForDay={events[selectedEvent?.date] || []} // always all events for the day
+          onPrev={handlePrevEvent}
+          onNext={handleNextEvent}
+        />
+      )}
     </div>
   )
 }
