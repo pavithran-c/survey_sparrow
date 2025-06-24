@@ -1,16 +1,20 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Calender from './components/Calender';
-function App() {
-  const [count, setCount] = useState(0)
+import React, { useState } from "react";
+import Calendar from "./components/Calender/Calender";
+import AnalogClock from "./components/Clock/AnalogClock";
+import Navbar from "./components/Navbar/Navbar";
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState("calendar");
 
   return (
-    <>
-      <Calender />
-    </>
-  )
-}
+    <div>
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="p-4">
+        {activeTab === "calendar" && <Calendar />}
+        {activeTab === "clock" && <AnalogClock />}
+      </div>
+    </div>
+  );
+};
 
-export default App
+export default App;

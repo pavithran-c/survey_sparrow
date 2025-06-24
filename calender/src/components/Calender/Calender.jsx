@@ -3,12 +3,13 @@
 import { useState, useRef, useEffect } from "react"
 import { gsap } from "gsap"
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight, MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from "react-icons/md"
-import UpcomingEvents from "./Calender/UpcomingEvents"
-import EventsForDay from "./Calender/EventsForDay"
-import CalendarGrid from "./Calender/CalendarGrid"
-import EventPanel from "./Calender/EventPanel"
+import UpcomingEvents from "../Events/UpcomingEvents"
+import EventsForDay from "../Events/EventsForDay"
+import CalendarGrid from "./CalendarGrid"
+import EventPanel from "../Events/EventPanel"
 import ReactDOM from "react-dom"
-import events from "../data/events.json";
+import initialEvents from "../../data/events.json";
+import AddEvent from "../Events/AddEvent";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const monthNames = [
@@ -59,6 +60,12 @@ const Calendar = () => {
   const [yearInput, setYearInput] = useState(year)
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [events, setEvents] = useState(() => {
+    const saved = localStorage.getItem("events");
+    return saved ? JSON.parse(saved) : initialEvents;
+  });
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState(null);
 
   const gridRef = useRef(null)
   const monthPickerRef = useRef(null)
@@ -196,9 +203,26 @@ const Calendar = () => {
   }
 
   const handleDateClick = (day, monthOffset) => {
-    if (monthOffset !== 0) return
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-    setSelectedDate(dateStr)
+    let newMonth = month;
+    let newYear = year;
+
+    if (monthOffset === -1) {
+      // Previous month
+      newMonth = month === 0 ? 11 : month - 1;
+      newYear = month === 0 ? year - 1 : year;
+    } else if (monthOffset === 1) {
+      // Next month
+      newMonth = month === 11 ? 0 : month + 1;
+      newYear = month === 11 ? year + 1 : year;
+    }
+
+    // Always update month/year if needed
+    setMonth(newMonth);
+    setYear(newYear);
+
+    // Set the selected date (for the new month/year)
+    const dateStr = `${newYear}-${String(newMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    setSelectedDate(dateStr);
   }
 
   const handleMonthHover = () => {
@@ -254,6 +278,41 @@ const Calendar = () => {
     }
   };
 
+  const handleAddEvent = (event) => {
+    setEvents(prev => {
+      const dateEvents = prev[event.date] ? [...prev[event.date]] : [];
+      dateEvents.push({
+        title: event.title,
+        color: event.color,
+        time: event.time,
+        endTime: event.endTime,
+        description: event.description,
+      });
+      return { ...prev, [event.date]: dateEvents };
+    });
+    setShowAddEvent(false);
+  };
+
+  const handleEditEvent = (event, idx) => {
+    setEventToEdit({ ...event, editIndex: idx });
+    setShowAddEvent(true);
+  };
+
+  const handleDeleteEvent = (event, idx) => {
+    setEvents(prev => {
+      const dateEvents = prev[event.date] ? [...prev[event.date]] : [];
+      dateEvents.splice(idx, 1); // Remove the event at idx
+      const updated = { ...prev, [event.date]: dateEvents };
+      localStorage.setItem("events", JSON.stringify(updated)); // Persist to localStorage
+      return updated;
+    });
+  };
+
+  // Save to localStorage whenever events change
+  useEffect(() => {
+    localStorage.setItem("events", JSON.stringify(events));
+  }, [events]);
+
   return (
     <div className="p-2 sm:p-4 md:p-6 max-w-full mx-auto">
       <div className={`flex flex-col lg:flex-row w-full min-h-[500px] relative overflow-visible transition-all duration-300 ${selectedEvent ? "filter pointer-events-none" : ""}`}>
@@ -308,8 +367,15 @@ const Calendar = () => {
         </div>
         {/* Sidebar */}
         <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 m-0 z-10">
-          <UpcomingEvents events={events} />
-          <EventsForDay events={events} selectedDate={selectedDate} />
+          <UpcomingEvents events={events} setSelectedEvent={setSelectedEvent} />
+          <EventsForDay
+            events={events}
+            selectedDate={selectedDate}
+            setSelectedEvent={setSelectedEvent}
+            onAddEvent={() => { setShowAddEvent(true); setEventToEdit(null); }}
+            onEditEvent={handleEditEvent}
+            onDeleteEvent={handleDeleteEvent}
+          />
         </div>
       </div>
       {/* Overlay for pickers */}
@@ -395,6 +461,14 @@ const Calendar = () => {
           eventsForDay={events[selectedEvent?.date] || []} // always all events for the day
           onPrev={handlePrevEvent}
           onNext={handleNextEvent}
+        />
+      )}
+      {showAddEvent && (
+        <AddEvent
+          selectedDate={selectedDate}
+          onSave={handleAddEvent}
+          onCancel={() => { setShowAddEvent(false); setEventToEdit(null); }}
+          eventToEdit={eventToEdit}
         />
       )}
     </div>
