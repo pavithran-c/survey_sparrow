@@ -173,8 +173,8 @@ const CalendarGrid = ({
                           setSelectedEvent && setSelectedEvent({ ...ev, date: cellDateStr });
                         }}
                       >
-                        {/* Show only the first word of the title on mobile, full title on sm+ */}
-                        <span className="truncate">
+                        {/* Title fills the box, no overflow */}
+                        <span className="w-full truncate max-w-full">
                           <span className="block sm:hidden">{ev.title?.split(" ")[0]}</span>
                           <span className="hidden sm:block">{ev.title}</span>
                         </span>
