@@ -52,13 +52,19 @@ function getMonthGrid(year, month) {
 }
 
 const Calendar = () => {
-  const today = new Date()
-  const [year, setYear] = useState(today.getFullYear())
-  const [month, setMonth] = useState(today.getMonth())
-  const [showMonthPicker, setShowMonthPicker] = useState(false)
-  const [showYearPicker, setShowYearPicker] = useState(false)
-  const [yearInput, setYearInput] = useState(year)
-  const [selectedDate, setSelectedDate] = useState(null)
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const [yearInput, setYearInput] = useState(year);
+  // Set selectedDate to today's date string on initial load
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  });
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState(() => {
     const saved = localStorage.getItem("events");
@@ -281,16 +287,29 @@ const Calendar = () => {
   const handleAddEvent = (event) => {
     setEvents(prev => {
       const dateEvents = prev[event.date] ? [...prev[event.date]] : [];
-      dateEvents.push({
-        title: event.title,
-        color: event.color,
-        time: event.time,
-        endTime: event.endTime,
-        description: event.description,
-      });
+      if (typeof event.editIndex === "number" && event.editIndex >= 0) {
+        // Edit existing event
+        dateEvents[event.editIndex] = {
+          title: event.title,
+          color: event.color,
+          time: event.time,
+          endTime: event.endTime,
+          description: event.description,
+        };
+      } else {
+        // Add new event
+        dateEvents.push({
+          title: event.title,
+          color: event.color,
+          time: event.time,
+          endTime: event.endTime,
+          description: event.description,
+        });
+      }
       return { ...prev, [event.date]: dateEvents };
     });
     setShowAddEvent(false);
+    setEventToEdit(null);
   };
 
   const handleEditEvent = (event, idx) => {
@@ -366,16 +385,25 @@ const Calendar = () => {
           </div>
         </div>
         {/* Sidebar */}
-        <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 m-0 z-10 order-2 lg:order-none">
-          <UpcomingEvents events={events} setSelectedEvent={setSelectedEvent} />
-          <EventsForDay
-            events={events}
-            selectedDate={selectedDate}
-            setSelectedEvent={setSelectedEvent}
-            onAddEvent={() => { setShowAddEvent(true); setEventToEdit(null); }}
-            onEditEvent={handleEditEvent}
-            onDeleteEvent={handleDeleteEvent}
-          />
+        <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 m-0 z-10 order-2 lg:order-none relative overflow-visible">
+          {/* Moving line and circle head */}
+          <span className="moving-circle pointer-events-none z-20">
+            <span className="circle-line"></span>
+            <span className="circle-head"></span>
+          </span>
+          <div className="mb-4 bg-white rounded-xl shadow-md border border-gray-200 p-3 relative z-30">
+            <UpcomingEvents events={events} setSelectedEvent={setSelectedEvent} />
+          </div>
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-3 relative z-30">
+            <EventsForDay
+              events={events}
+              selectedDate={selectedDate}
+              setSelectedEvent={setSelectedEvent}
+              onAddEvent={() => { setShowAddEvent(true); setEventToEdit(null); }}
+              onEditEvent={handleEditEvent}
+              onDeleteEvent={handleDeleteEvent}
+            />
+          </div>
         </div>
       </div>
       {/* Overlay for pickers */}
@@ -391,25 +419,28 @@ const Calendar = () => {
       )}
       {/* Month Picker Portal */}
       {showMonthPicker &&
-        ReactDOM.createPortal(
+        ReactDOM.createPortal(  
           <div
             ref={monthPickerRef}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 grid grid-cols-3 gap-3 w-64 sm:w-100"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4"
+            style={{ width: "20rem", maxWidth: "95vw" }}
             onClick={e => e.stopPropagation()}
           >
-            {monthNames.map((m, idx) => (
-              <button
-                key={m}
-                onClick={() => handleMonthSelect(idx)}
-                className={`block w-full text-center px-4 py-3 rounded-lg transition-all duration-200 text-base font-medium
-                  ${idx === month
-                    ? "bg-blue-500 text-white shadow hover:bg-blue-600 hover:shadow-md"
-                    : "text-gray-900 hover:bg-blue-200 hover:shadow-sm"}`}
-                style={{ minHeight: "2.5rem" }}
-              >
-                {m}
-              </button>
-            ))}
+            <div className="grid grid-cols-3 gap-3 w-full">
+              {monthNames.map((m, idx) => (
+                <button
+                  key={m}
+                  onClick={() => handleMonthSelect(idx)}
+                  className={`block w-full text-center px-2 py-3 rounded-lg transition-all duration-200 text-base font-medium
+                    ${idx === month
+                      ? "bg-blue-500 text-white shadow hover:bg-blue-600 hover:shadow-md"
+                      : "text-gray-900 hover:bg-blue-200 hover:shadow-sm"}`}
+                  style={{ minHeight: "2.5rem" }}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
           </div>,
           document.body
         )
@@ -458,9 +489,11 @@ const Calendar = () => {
         <EventPanel
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
-          eventsForDay={events[selectedEvent?.date] || []} // always all events for the day
+          eventsForDay={events[selectedEvent?.date] || []}
           onPrev={handlePrevEvent}
           onNext={handleNextEvent}
+          onEdit={handleEditEvent}
+          onDelete={handleDeleteEvent}
         />
       )}
       {showAddEvent && (

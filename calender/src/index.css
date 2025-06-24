@@ -1,1 +1,56 @@
 @import "tailwindcss";
+
+
+.moving-circle {
+  position: absolute;
+  top: -8px; left: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.moving-circle .circle-head {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 8px 2px #3b82f6aa;
+  z-index: 2;
+  animation: moveCircleHead 8s linear infinite;
+}
+
+.moving-circle .circle-line {
+  position: absolute;
+  background: #3b82f6;
+  z-index: 1;
+  /* Will animate width/height and position */
+  animation: moveCircleLine 8s linear infinite;
+}
+
+/* Animate the circle head around the box */
+@keyframes moveCircleHead {
+  0%   { top: 0; left: 0; }
+  25%  { top: 0; left: calc(100% - 18px); }
+  50%  { top: calc(100% - 18px); left: calc(100% - 18px); }
+  75%  { top: calc(100% - 18px); left: 0; }
+  100% { top: 0; left: 0; }
+}
+
+/* Animate the line to follow the circle head */
+@keyframes moveCircleLine {
+  /* Top border */
+  0%   { top: 8px; left: 8px; width: 0; height: 2px; }
+  24.9% { top: 8px; left: 8px; width: calc(100% - 16px); height: 2px; }
+  /* Right border */
+  25%  { top: 8px; left: calc(100% - 10px); width: 2px; height: 0; }
+  49.9% { top: 8px; left: calc(100% - 10px); width: 2px; height: calc(100% - 16px); }
+  /* Bottom border */
+  50%  { top: calc(100% - 10px); left: calc(100% - 10px); width: 0; height: 2px; }
+  74.9% { top: calc(100% - 10px); left: 8px; width: calc(100% - 16px); height: 2px; }
+  /* Left border */
+  75%  { top: calc(100% - 10px); left: 8px; width: 2px; height: 0; }
+  99.9% { top: 8px; left: 8px; width: 2px; height: calc(100% - 16px); }
+  100% { top: 8px; left: 8px; width: 0; height: 2px; }
+}

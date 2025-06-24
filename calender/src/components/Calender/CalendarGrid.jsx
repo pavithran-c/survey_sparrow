@@ -1,10 +1,11 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import {
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
   MdKeyboardDoubleArrowLeft,
   MdKeyboardDoubleArrowRight,
 } from "react-icons/md";
+import { gsap } from "gsap";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -23,27 +24,74 @@ const CalendarGrid = ({
 }) => {
   const eventsPerPage = 3;
   const pageRefs = useRef({});
+  const navButtonRefs = useRef([]);
+  const headerRef = useRef(null);
+
+  // GSAP Animations for Header
+  useEffect(() => {
+    // Animate navigation buttons
+    navButtonRefs.current.forEach((button, index) => {
+      gsap.fromTo(
+        button,
+        { scale: 0.5, opacity: 0 },
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.4,
+          delay: index * 0.1,
+          ease: "back.out(2)",
+        }
+      );
+    });
+
+    // Animate month/year selector
+    gsap.fromTo(
+      headerRef.current.querySelector(".month-year-selector"),
+      { y: -20, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.5,
+        ease: "power2.out",
+      }
+    );
+  }, [month, year]);
 
   return (
     <div className="flex flex-col w-full px-2">
       {/* Navigation Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
-        <div className="flex items-center gap-2">
-          <button onClick={handlePrevYear} className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm" aria-label="Previous Year">
-            <MdKeyboardDoubleArrowLeft size={22} />
+      <div
+        ref={headerRef}
+        className="flex flex-row items-center justify-between mb-4 gap-1 sm:gap-2 bg-gradient-to-r from-blue-500 to-blue-400 rounded-xl p-4 shadow-sm"
+      >
+        {/* Navigation Buttons (Prev) */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          <button
+            ref={el => (navButtonRefs.current[0] = el)}
+            onClick={handlePrevYear}
+            className="p-2 rounded-full bg-white text-blue-600 hover:bg-blue-200 hover:text-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+            aria-label="Previous Year"
+          >
+            <MdKeyboardDoubleArrowLeft size={24} />
           </button>
-          <button onClick={handlePrevMonth} className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm" aria-label="Previous Month">
-            <MdKeyboardArrowLeft size={22} />
+          <button
+            ref={el => (navButtonRefs.current[1] = el)}
+            onClick={handlePrevMonth}
+            className="p-2 rounded-full bg-white text-blue-600 hover:bg-blue-200 hover:text-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+            aria-label="Previous Month"
+          >
+            <MdKeyboardArrowLeft size={24} />
           </button>
         </div>
 
-        <span className="text-lg sm:text-xl font-bold relative flex flex-col items-center sm:flex-row sm:gap-2">
+        {/* Month/Year Selector */}
+        <span className="month-year-selector flex flex-col items-center text-lg sm:text-xl font-semibold text-white">
           <button
             ref={monthBtnRef}
             onClick={handleMonthClick}
             onMouseEnter={handleMonthHover}
             onMouseLeave={handleMonthUnhover}
-            className="focus:outline-none px-2 py-1 rounded transition bg-white"
+            className="focus:outline-none px-3 py-1 rounded-lg bg-white text-blue-600 hover:bg-blue-100 transition-all duration-200 shadow-sm hover:shadow-md mb-1"
           >
             {monthNames[month]}
           </button>
@@ -52,18 +100,29 @@ const CalendarGrid = ({
             onClick={handleYearClick}
             onMouseEnter={handleYearHover}
             onMouseLeave={handleYearUnhover}
-            className="focus:outline-none px-2 py-1 rounded transition bg-white"
+            className="focus:outline-none px-3 py-1 rounded-lg bg-white text-blue-600 hover:bg-blue-100 transition-all duration-200 shadow-sm hover:shadow-md"
           >
             {year}
           </button>
         </span>
 
-        <div className="flex items-center gap-2">
-          <button onClick={handleNextMonth} className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm" aria-label="Next Month">
-            <MdKeyboardArrowRight size={22} />
+        {/* Navigation Buttons (Next) */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          <button
+            ref={el => (navButtonRefs.current[2] = el)}
+            onClick={handleNextMonth}
+            className="p-2 rounded-full bg-white text-blue-600 hover:bg-blue-200 hover:text-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+            aria-label="Next Month"
+          >
+            <MdKeyboardArrowRight size={24} />
           </button>
-          <button onClick={handleNextYear} className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm" aria-label="Next Year">
-            <MdKeyboardDoubleArrowRight size={22} />
+          <button
+            ref={el => (navButtonRefs.current[3] = el)}
+            onClick={handleNextYear}
+            className="p-2 rounded-full bg-white text-blue-600 hover:bg-blue-200 hover:text-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+            aria-label="Next Year"
+          >
+            <MdKeyboardDoubleArrowRight size={24} />
           </button>
         </div>
       </div>
@@ -118,10 +177,7 @@ const CalendarGrid = ({
             }
           }
 
-          const totalPages = Math.ceil(sortedDayEvents.length / eventsPerPage);
-          if (pageRefs.current[cellDateStr] === undefined) pageRefs.current[cellDateStr] = 0;
-          const page = pageRefs.current[cellDateStr];
-          const visibleEvents = sortedDayEvents.slice(page * eventsPerPage, (page + 1) * eventsPerPage);
+          const visibleEvents = sortedDayEvents;
 
           return (
             <div
@@ -173,7 +229,6 @@ const CalendarGrid = ({
                           setSelectedEvent && setSelectedEvent({ ...ev, date: cellDateStr });
                         }}
                       >
-                        {/* Title fills the box, no overflow */}
                         <span className="w-full truncate max-w-full">
                           <span className="block sm:hidden">{ev.title?.split(" ")[0]}</span>
                           <span className="hidden sm:block">{ev.title}</span>

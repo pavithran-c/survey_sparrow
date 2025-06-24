@@ -192,7 +192,7 @@ export default AddEvent
 const handleAddEvent = (event) => {
   setEvents(prev => {
     const dateEvents = prev[event.date] ? [...prev[event.date]] : [];
-    if (typeof event.editIndex === "number") {
+    if (typeof event.editIndex === "number" && event.editIndex >= 0) {
       // Edit existing event
       dateEvents[event.editIndex] = {
         title: event.title,
