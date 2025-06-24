@@ -166,16 +166,17 @@ const CalendarGrid = ({
                     {visibleEvents.map((ev, i) => (
                       <li
                         key={i}
-                        className="flex items-center gap-1 text-[10px] sm:text-sm rounded px-1 py-0.5 cursor-pointer"
+                        className="flex flex-col items-start text-[10px] sm:text-sm rounded px-1 py-0.5 cursor-pointer"
                         style={{ background: ev.color ? `${ev.color}22` : "#e0edff" }}
                         onClick={e => {
                           e.stopPropagation();
                           setSelectedEvent && setSelectedEvent({ ...ev, date: cellDateStr });
                         }}
                       >
-                        <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ background: ev.color || "#3b82f6" }} />
                         <span className="truncate">{ev.title}</span>
-                        {ev.time && <span className="ml-auto text-[9px] text-gray-500">{ev.time}</span>}
+                        {ev.time && (
+                          <span className="text-[9px] text-gray-500 ml-3">{ev.time}</span>
+                        )}
                       </li>
                     ))}
                   </ul>

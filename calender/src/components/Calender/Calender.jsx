@@ -317,7 +317,7 @@ const Calendar = () => {
     <div className="p-2 sm:p-4 md:p-6 max-w-full mx-auto">
       <div className={`flex flex-col lg:flex-row w-full min-h-[500px] relative overflow-visible transition-all duration-300 ${selectedEvent ? "filter pointer-events-none" : ""}`}>
         {/* Calendar Panel */}
-        <div className="flex-1 flex flex-col z-10 overflow-x-auto">
+        <div className="flex-1 flex flex-col z-10 overflow-x-auto order-1 lg:order-none">
           <div
             ref={calendarRef}
             className="flex justify-center w-full"
@@ -366,7 +366,7 @@ const Calendar = () => {
           </div>
         </div>
         {/* Sidebar */}
-        <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 m-0 z-10">
+        <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 m-0 z-10 order-2 lg:order-none">
           <UpcomingEvents events={events} setSelectedEvent={setSelectedEvent} />
           <EventsForDay
             events={events}
