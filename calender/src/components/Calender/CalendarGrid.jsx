@@ -173,9 +173,13 @@ const CalendarGrid = ({
                           setSelectedEvent && setSelectedEvent({ ...ev, date: cellDateStr });
                         }}
                       >
-                        <span className="truncate">{ev.title}</span>
+                        {/* Show only the first word of the title on mobile, full title on sm+ */}
+                        <span className="truncate">
+                          <span className="block sm:hidden">{ev.title?.split(" ")[0]}</span>
+                          <span className="hidden sm:block">{ev.title}</span>
+                        </span>
                         {ev.time && (
-                          <span className="text-[9px] text-gray-500 ml-3">{ev.time}</span>
+                          <span className="text-[9px] text-gray-500">{ev.time}</span>
                         )}
                       </li>
                     ))}
