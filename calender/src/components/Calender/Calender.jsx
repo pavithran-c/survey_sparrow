@@ -289,27 +289,33 @@ const Calendar = () => {
 
   const handleAddEvent = (event) => {
     setEvents(prev => {
-      const dateEvents = prev[event.date] ? [...prev[event.date]] : [];
-      if (typeof event.editIndex === "number" && event.editIndex >= 0) {
-        // Edit existing event
+      // Only update events for the current selectedDate, do not allow changing the date via edit
+      const dateKey = selectedDate;
+      const dateEvents = prev[dateKey] ? [...prev[dateKey]] : [];
+      if (typeof event.editIndex === "number") {
+        // Edit existing event on the current date
         dateEvents[event.editIndex] = {
           title: event.title,
           color: event.color,
           time: event.time,
           endTime: event.endTime,
           description: event.description,
+          priority: event.priority,
+          reminder: event.reminder,
         };
       } else {
-        // Add new event
+        // Add new event to the current date
         dateEvents.push({
           title: event.title,
           color: event.color,
           time: event.time,
           endTime: event.endTime,
           description: event.description,
+          priority: event.priority,
+          reminder: event.reminder,
         });
       }
-      return { ...prev, [event.date]: dateEvents };
+      return { ...prev, [dateKey]: dateEvents };
     });
     setShowAddEvent(false);
     setEventToEdit(null);
