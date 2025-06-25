@@ -229,6 +229,9 @@ const Calendar = () => {
     // Set the selected date (for the new month/year)
     const dateStr = `${newYear}-${String(newMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     setSelectedDate(dateStr);
+    setShowAddEvent(true); // Open AddEvent modal
+    setEventToEdit(null); // Reset edit state
+    setSelectedEvent(null); // Clear selected event so sidebar shows day's events
   }
 
   const handleMonthHover = () => {
@@ -385,16 +388,17 @@ const Calendar = () => {
           </div>
         </div>
         {/* Sidebar */}
-        <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 m-0 z-10 order-2 lg:order-none relative overflow-visible">
-          {/* Moving line and circle head */}
-          <span className="moving-circle pointer-events-none z-20">
-            <span className="circle-line"></span>
-            <span className="circle-head"></span>
-          </span>
-          <div className="mb-4 bg-white rounded-xl shadow-md border border-gray-200 p-3 relative z-30">
+        <div className="w-full lg:w-[260px] min-w-0 max-w-full lg:min-w-[200px] lg:max-w-[300px] p-2 sm:p-4 m-0 z-10 order-2 lg:order-none relative overflow-visible">
+          <div className="mb-5 bg-white rounded-xl shadow-md border border-gray-200 p-3 relative z-30 min-h-[180px] max-h-[260px] overflow-y-auto flex flex-col justify-start no-scrollbar">
+            <span className="moving-circle pointer-events-none z-20">
+              <span className="circle-line"></span>
+            </span>
             <UpcomingEvents events={events} setSelectedEvent={setSelectedEvent} />
           </div>
-          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-3 relative z-30">
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-3 relative z-30 min-h-[180px] max-h-[320px] overflow-y-auto flex flex-col justify-start no-scrollbar">
+            <span className="moving-circle pointer-events-none z-20">
+              <span className="circle-line"></span>
+            </span>
             <EventsForDay
               events={events}
               selectedDate={selectedDate}

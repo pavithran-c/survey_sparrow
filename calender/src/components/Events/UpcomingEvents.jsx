@@ -31,16 +31,18 @@ const UpcomingEvents = ({ events, setSelectedEvent }) => {
         {upcoming.map((ev, i) => (
           <li
             key={i}
-            className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 rounded px-2 py-1"
+            className="flex items-center gap-2 cursor-pointer bg-white/90 rounded-xl shadow-md border border-gray-200 px-3 py-3 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:bg-blue-50 min-h-[3.2rem] min-w-[180px] sm:min-w-[200px] md:min-w-[220px]"
             onClick={() => setSelectedEvent && setSelectedEvent({ ...ev, date: ev.date })}
           >
             <span className="inline-block w-3 h-3 rounded-full" style={{ background: ev.color }} />
-            <span className="font-medium">{ev.title}</span>
-            <span className="text-xs text-gray-500 ml-auto">{ev.date} {ev.time}</span>
+            <span className="font-medium truncate max-w-[calc(100%-90px)]">
+              {ev.title?.split(' ')[0] || ev.title}
+            </span>
+            <span className="text-xs text-gray-500 ml-auto whitespace-nowrap">{ev.date} {ev.time}</span>
           </li>
         ))}
         {upcoming.length === 0 && (
-          <li className="text-gray-400 text-sm">No upcoming events.</li>
+          <li className="text-gray-400 text-sm min-h-[3.2rem] min-w-[180px] sm:min-w-[200px] md:min-w-[220px] flex items-center">No upcoming events.</li>
         )}
       </ul>
     </div>

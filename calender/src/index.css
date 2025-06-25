@@ -15,15 +15,15 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #3b82f6;
-  box-shadow: 0 0 8px 2px #3b82f6aa;
+  background: #7c6ee6; /* Soft purple */
+  box-shadow: 0 0 8px 2px #7c6ee6aa;
   z-index: 2;
   animation: moveCircleHead 8s linear infinite;
 }
 
 .moving-circle .circle-line {
   position: absolute;
-  background: #3b82f6;
+  background: #7c6ee6; /* Soft purple */
   z-index: 1;
   /* Will animate width/height and position */
   animation: moveCircleLine 8s linear infinite;
@@ -53,4 +53,12 @@
   75%  { top: calc(100% - 10px); left: 8px; width: 2px; height: 0; }
   99.9% { top: 8px; left: 8px; width: 2px; height: calc(100% - 16px); }
   100% { top: 8px; left: 8px; width: 0; height: 2px; }
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

@@ -1,8 +1,7 @@
 import React, { useState } from "react"
-import { MdEvent, MdEdit, MdDelete } from "react-icons/md"
+import { MdEvent } from "react-icons/md"
 
-const EventsForDay = ({ events, selectedDate, setSelectedEvent, onAddEvent, onEditEvent, onDeleteEvent }) => {
-  const [confirmIdx, setConfirmIdx] = useState(null)
+const EventsForDay = ({ events, selectedDate, setSelectedEvent, onAddEvent }) => {
   const dayEvents = events[selectedDate] || []
 
   if (!selectedDate) return null
@@ -31,51 +30,6 @@ const EventsForDay = ({ events, selectedDate, setSelectedEvent, onAddEvent, onEd
             <span className="inline-block w-3 h-3 rounded-full" style={{ background: ev.color }} />
             <span className="font-medium flex-1 truncate">{ev.title}</span>
             <span className="text-xs text-gray-500 ml-2">{ev.time}</span>
-            <button
-              className="p-1 hover:bg-gray-200 rounded"
-              title="Edit"
-              onClick={e => {
-                e.stopPropagation();
-                onEditEvent && onEditEvent({ ...ev, date: selectedDate }, i);
-              }}
-            >
-              <MdEdit size={16} className="text-blue-500" />
-            </button>
-            {confirmIdx === i ? (
-              <>
-                <span className="text-xs text-red-600 ml-2">Confirm?</span>
-                <button
-                  className="p-1 hover:bg-gray-200 rounded text-xs text-red-600"
-                  onClick={e => {
-                    e.stopPropagation();
-                    onDeleteEvent && onDeleteEvent({ ...ev, date: selectedDate }, i);
-                    setConfirmIdx(null);
-                  }}
-                >
-                  Yes
-                </button>
-                <button
-                  className="p-1 hover:bg-gray-200 rounded text-xs"
-                  onClick={e => {
-                    e.stopPropagation();
-                    setConfirmIdx(null);
-                  }}
-                >
-                  No
-                </button>
-              </>
-            ) : (
-              <button
-                className="p-1 hover:bg-gray-200 rounded"
-                title="Delete"
-                onClick={e => {
-                  e.stopPropagation();
-                  setConfirmIdx(i);
-                }}
-              >
-                <MdDelete size={16} className="text-red-500" />
-              </button>
-            )}
           </li>
         ))}
       </ul>
